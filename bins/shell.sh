@@ -6,19 +6,20 @@ if [ -z "$filePath" ]; then
     exit 1;
 fi;
 
-echo "$filePath"
+flutter pub run build_runner build --build-filter "$filePath"
 
-flutter pub run build_runner build --build-filter "$filePath" | while read line; do
-    echo $line
-done
+FlutterBuildResult=$?
 
-FlutterBuildIsSuccess=$?
-
-if [ $FlutterBuildIsSuccess -eq 0 ]; then
+if [ $FlutterBuildResult -eq 0 ]; then
     echo "=================build_runner sucess================="
-else
+elif [ $FlutterBuildResult -eq 78 ]; then
     echo "增加--delete-conflicting-outputs参数，删除冲突代码再生成"
-    flutter pub run build_runner build --delete-conflicting-outputs | while read line; do
-        echo $line
-    done
+    flutter pub run build_runner build --delete-conflicting-outputs
+elif [ $FlutterBuildResult -eq 65 ]; then
+    echo "执行flutter pub get"
+    flutter pub get
+    echo "build_runner build"
+    flutter pub run build_runner build --delete-conflicting-outputs
+else
+    echo "===========$FlutterBuildResult"
 fi

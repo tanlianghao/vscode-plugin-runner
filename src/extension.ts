@@ -13,9 +13,9 @@ export function activate(context: vscode.ExtensionContext) {
 			if (stats.isFile()) {
 				let currentFilePath = path.dirname(data.path);
 				let extname = path.extname(data.path);
-				result = path.join(currentFilePath, `*${extname}`);
+				result = path.join(currentFilePath, `*`);
 			} else if (stats.isDirectory()) {
-				result = path.join(data.path, `**.dart`);
+				result = path.join(data.path, `**`);
 			}
 			
 			if (!terminal) {
