@@ -1,9 +1,9 @@
 {
-  "name": "xp-runner",
-  "displayName": "xp-runner",
+  "name": "build_runner_tool",
+  "displayName": "build_runner_tool",
   "description": "",
   "publisher": "tanlh",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "engines": {
     "vscode": "^1.84.0"
   },
@@ -16,7 +16,7 @@
     "commands": [
       {
         "command": "xp-runner.buildRunner",
-        "title": "xp-build-runner"
+        "title": "build_runner: build"
       }
     ],
     "menus": {

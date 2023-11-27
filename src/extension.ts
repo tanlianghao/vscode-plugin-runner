@@ -24,11 +24,16 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 			let shellPath = path.join(__dirname, 'shell.sh');
 			let nodejs = path.join(__dirname, 'node.js');
+			let commands = `${shellPath} "${result}"`;
+			try {
+				fs.accessSync(shellPath, fs.constants.X_OK);
+			}catch(e) {
+				commands = `chmod u+x ${shellPath}; ${shellPath} "${result}"`;
+			}
 
 			vscode.window.showInformationMessage('build_runner is running...');
-
+			terminal.sendText(commands);
 			// terminal.sendText(`flutter pub run build_runner build --build-filter '${result}'`);
-			terminal.sendText(`chmod u+x ${shellPath}; ${shellPath} "${result}"`);
 			// terminal.sendText(`node ${nodejs} '${result}'`);
 
 			vscode.window.onDidCloseTerminal(() => {
