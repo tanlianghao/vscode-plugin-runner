@@ -1,6 +1,6 @@
 {
-  "name": "build_runner_tool",
-  "displayName": "build_runner_tool",
+  "name": "build-runner-tool",
+  "displayName": "build-runner-tool",
   "description": "",
   "publisher": "tanlh",
   "version": "0.0.4",
