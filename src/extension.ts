@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import path from 'path';
 import fs from 'fs';
 
-let terminal: vscode.Terminal;
+let terminal: vscode.Terminal | null;
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "xp-runner" is now active!');
@@ -36,8 +36,9 @@ export function activate(context: vscode.ExtensionContext) {
 			// terminal.sendText(`flutter pub run build_runner build --build-filter '${result}'`);
 			// terminal.sendText(`node ${nodejs} '${result}'`);
 
-			vscode.window.onDidCloseTerminal(() => {
-				terminal.dispose();
+			vscode.window.onDidCloseTerminal((t) => {
+				terminal?.dispose();
+				terminal = null;
 			});
 			
 	});
