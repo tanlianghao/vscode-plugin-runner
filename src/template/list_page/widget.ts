@@ -165,4 +165,136 @@ class _${className}PageState extends State<${className}Page> with SingleTickerPr
   `;
 };
 
-export { widgetBuilder, pulldownListCodeBuilder };
+let filterPulldownListCodeBuilder = function(className: string, fileName: string) {
+  return `
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:xdragon/pages/user_record/modules/record_filter.dart';
+import 'package:xdragon/widgets/app_bar.dart';
+import '${fileName}';
+import 'package:xltheme_ui/xltheme_ui.dart';
+
+class ${className}Page extends StatefulWidget {
+  const ${className}Page({Key? key, this.initialIndex}) : super(key: key);
+  final String? initialIndex;
+
+  @override
+  State<${className}Page> createState() => _${className}PageState();
+}
+
+class _${className}PageState extends State<${className}Page> with SingleTickerProviderStateMixin {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: XLAppBar(title: 'TODO: 标题'),
+        body: BlocProvider<${className}Cubit>(
+          create: (context) => ${className}Cubit(vsync: this, initialIndex: widget.initialIndex)..initState(),
+          child: Builder(builder: (ctx) {
+            final cubit = ctx.read<${className}Cubit>();
+            return BlocBuilder<${className}Cubit, ${className}State>(
+              buildWhen: (previous, current) {
+                if (previous.isLoading != current.isLoading ||
+                    previous.isError != current.isError ||
+                    previous.filterListMap != current.filterListMap) {
+                  return true;
+                }
+                return false;
+              },
+              builder: (context, state) {
+                if (state.isLoading) {
+                  return Spinning();
+                }
+
+                if (state.isError) {
+                  return buildNetWorkError(() {});
+                }
+
+                return Column(
+                  children: [
+                    XLTabBar(
+                      tabs: cubit.tabs.map((e) => Text(e)).toList(),
+                      controller: cubit.tabController,
+                      labelStyle: context.mainStyles.textStyle.body1,
+                      unselectedLabelStyle: context.mainStyles.textStyle.body1.copyWith(fontWeight: FontWeight.normal),
+                      labelPadding: EdgeInsets.all(0),
+                    ),
+                    Expanded(
+                        child: TabBarView(
+                      controller: cubit.tabController,
+                      children: [
+                        ...cubit.tabs
+                            .map((e) => Stack(
+                                  children: [
+                                    Column(
+                                      children: [
+                                        BlocBuilder<${className}Cubit, ${className}State>(
+                                          buildWhen: (previous, current) {
+                                            return previous.filterListMap?[e] != current.filterListMap?[e];
+                                          },
+                                          builder: (context, state) {
+                                            final filterList = state.filterListMap?[e] ?? [];
+                                            return CommonFilters(
+                                                filterController: cubit.filterController[e],
+                                                filterList: filterList,
+                                                confirmHandle: cubit.confirmFilterHandle,
+                                                onTapFilterCallBack: cubit.onTapFilter);
+                                          },
+                                        ),
+                                        Expanded(
+                                            child: PullDownList(
+                                          renderItem: (data, index) {
+                                            return buildItem(data, index);
+                                          },
+                                          pullDownListController: cubit.pullDownListControllers[e],
+                                          firstRefreshWidget: Container(
+                                            child: Center(
+                                              child: Spinning(
+                                                text: '正在加载...',
+                                              ),
+                                            ),
+                                          ),
+                                          emptyWidget: buildNoData(onReload: cubit.callRefresh),
+                                          onBlocRequest: cubit.onBlocRequest,
+                                          keepAlive: true,
+                                        ))
+                                      ],
+                                    ),
+                                    if (cubit.filterController[e] != null)
+                                      BlocBuilder<${className}Cubit, ${className}State>(
+                                        buildWhen: (previous, current) {
+                                          return previous.showFilter[e] != current.showFilter[e];
+                                        },
+                                        builder: (context, state) {
+                                          if (state.showFilter[e] == true) {
+                                            return Positioned(
+                                              top: 40,
+                                              right: 0,
+                                              left: 0,
+                                              bottom: 0,
+                                              child: cubit.filterController[e]!.getBuilder(),
+                                            );
+                                          }
+                                          return SizedBox.shrink();
+                                        },
+                                      ),
+                                  ],
+                                ))
+                            .toList()
+                      ],
+                    ))
+                  ],
+                );
+              },
+            );
+          }),
+        ));
+  }
+
+  Widget buildItem(data, int index) {
+    throw UnimplementedError();
+  }
+}
+  `;
+};
+
+export { widgetBuilder, pulldownListCodeBuilder, filterPulldownListCodeBuilder };

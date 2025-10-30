@@ -33,11 +33,11 @@
     "menus": {
       "explorer/context": [
         {
-          "when": "explorerViewletVisible",
+          "when": "!explorerResourceIsFolder",
           "command": "xp-runner.buildRunner"
         },
         {
-          "when": "explorerViewletVisible",
+          "when": "!explorerResourceIsFolder",
           "command": "openai-for-code.form"
         },
         {
