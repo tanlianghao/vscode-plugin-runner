@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import path from "path";
 import fs from "fs";
-import { formBlocTemplate, formStateTemplate } from "./template/form/bloc_form";
+import { formBlocTemplate, formStateTemplate, formPageCodeTemplateBuilder } from "./template/form/bloc_form";
 import { pulldownListCodeBuilder, widgetBuilder, filterPulldownListCodeBuilder } from "./template/list_page/widget";
 import {
   cubitCodeBuilder,
@@ -68,28 +68,41 @@ async function generateFormCode(data: vscode.Uri): Promise<any> {
   try {
     const fileNameSplitFlag = "_";
     const cubitDir = "cubit";
-    let inputResult = await vscode.window.showInputBox();
-
+    let inputResult = await vscode.window.showInputBox({ placeHolder: "请输入需创建的文件名（不含后缀，文件名以_分割）" });
+    
     if (!inputResult) {
-      vscode.window.showErrorMessage("请输入完整的文件名");
+      vscode.window.showErrorMessage("请先输入文件名");
+      return;
+    }
+    
+    const fsStat = fs.statSync(data.path);
+    const pageFileName = inputResult + "_page.dart";
+
+    if (fsStat.isDirectory()) {
+      vscode.window.showErrorMessage("非选择文件");
       return;
     }
 
-    const fsStat = fs.statSync(data.path);
-    let dirname = data.path;
+    let cubitDirUri = await checkAndCreateCubitDir(data.path);
 
-    if (fsStat.isFile()) {
-      dirname = path.dirname(data.path);
+    let cubitFileName = inputResult + "_cubit.dart";
+    let stateFileName = inputResult + "_state.dart";
+
+    let cubitFilePath, stateFilePath;
+    let dirname = path.dirname(data.path);
+    if (!cubitDirUri) {
+      fs.mkdirSync(path.join(dirname, cubitDir));
+      cubitFilePath = path.join(dirname, cubitDir, cubitFileName);
+      stateFilePath = path.join(dirname, cubitDir, stateFileName);
     } else {
-      let basename = path.basename(data.path);
-      if (basename !== cubitDir) {
-        dirname = path.join(data.path, cubitDir);
-      }
+      cubitFilePath = path.join(cubitDirUri, cubitFileName);
+      stateFilePath = path.join(cubitDirUri, stateFileName);
     }
-    let cubitFilePath = path.join(dirname, inputResult + "_cubit.dart");
-    let stateFilePath = path.join(dirname, inputResult + "_state.dart");
 
-    if (fs.existsSync(cubitFilePath) || fs.existsSync(stateFilePath)) {
+    let pageFilePath = path.join(path.dirname(data.path), pageFileName);
+    let relativePath = path.relative(dirname, cubitFilePath);
+
+    if (fs.existsSync(cubitFilePath) || fs.existsSync(stateFilePath) || fs.existsSync(pageFilePath)) {
       vscode.window.showErrorMessage("文件已存在");
       return;
     }
@@ -106,9 +119,14 @@ async function generateFormCode(data: vscode.Uri): Promise<any> {
 
     let cubitFileContent = formBlocTemplate(blocClassName, inputResult);
     let stateFileContent = formStateTemplate(blocClassName, inputResult);
+    let widgetFileContent = formPageCodeTemplateBuilder(blocClassName, relativePath);
 
     fs.writeFileSync(cubitFilePath, cubitFileContent);
     fs.writeFileSync(stateFilePath, stateFileContent);
+    fs.writeFileSync(pageFilePath, widgetFileContent);
+
+    const pageUri = vscode.Uri.file(pageFilePath);
+    vscode.window.showTextDocument(pageUri, {preserveFocus: false});
 
     vscode.window.showInformationMessage("Form 代码生成成功！");
   } catch (error) {
@@ -165,8 +183,9 @@ async function generateListPageCode(data: vscode.Uri): Promise<any> {
     let cubitFilePath, stateFilePath;
     let dirname = path.dirname(data.path);
     if (!cubitDirUri) {
-      cubitFilePath = path.join(dirname, cubitFileName);
-      stateFilePath = path.join(dirname, stateFileName);
+      fs.mkdirSync(path.join(dirname, cubitDir));
+      cubitFilePath = path.join(dirname, cubitDir, cubitFileName);
+      stateFilePath = path.join(dirname, cubitDir, stateFileName);
     } else {
       cubitFilePath = path.join(cubitDirUri, cubitFileName);
       stateFilePath = path.join(cubitDirUri, stateFileName);
@@ -198,9 +217,13 @@ async function generateListPageCode(data: vscode.Uri): Promise<any> {
       stateContent = filterPulldownStateCodeBuilder(className, inputResult);
     }
 
-    fs.writeFileSync(path.join(path.dirname(data.path), pageFileName), widgetContent!);
+    let pageFilePath = path.join(path.dirname(data.path), pageFileName);
+    fs.writeFileSync(pageFilePath, widgetContent!);
     fs.writeFileSync(cubitFilePath, cubitContent!);
     fs.writeFileSync(stateFilePath, stateContent!);
+
+    const pageUri = vscode.Uri.file(pageFilePath);
+    vscode.window.showTextDocument(pageUri, {preserveFocus: false});
 
     vscode.window.showInformationMessage("列表页代码生成成功！");
   } catch (error) {

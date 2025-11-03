@@ -19,34 +19,30 @@ class _${className}ListWidgetState extends State<${className}ListWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: XLAppBar(title: Text('')),
+        appBar: XLAppBar(title: "Demo页面", trailing: trailingBuilder(),),
         body: BlocProvider<${className}Cubit>(
           create: (context) => ${className}Cubit(),
           child: Builder(builder: (ctx) {
             final cubit = ctx.read<${className}Cubit>();
             return BlocBuilder<${className}Cubit, ${className}State>(
               builder: (context, state) {
-                if (state.isLoading) {
-                  return Spinning();
-                }
-
-                if (state.isError) {
-                  return buildNetWorkError(() {
-                    // TODO: 重试逻辑
-                  });
-                }
-
                 return Column(
                   children: [
                     Expanded(
-                        child: PullDownList<T>(
+                        child: PullDownList(
                       renderItem: (data, index) {
                         return buildItem(data, index);
                       },
                       emptyWidget: buildNoData(),
+                      firstRefreshWidget: Container(
+                        child: Center(
+                          child: Spinning(
+                            text: '正在加载...',
+                          ),
+                        ),
+                      ),
+                      pullDownListController: cubit.pullDownListController,
                       onBlocRequest: cubit.onBlocRequest,
-                      firstRefresh: true,
-                      keepAlive: true,
                     ))
                   ],
                 );
@@ -56,7 +52,7 @@ class _${className}ListWidgetState extends State<${className}ListWidget> {
         ));
   }
 
-  Widget buildItem(T data, int index) {
+  Widget buildItem(dynamic data, int index) {
     throw UnimplementedError();
   }
 
@@ -83,6 +79,7 @@ class ${className}ListSearchDelegate extends XdragonSearchDelegate {
   @override
   Widget buildResults(BuildContext context, [Map? ext]) {
     // TODO: 实现自定义搜索结果页面
+    final searchResult = query;
     throw UnimplementedError();
   }
 }
@@ -131,7 +128,7 @@ class _${className}PageState extends State<${className}Page> with SingleTickerPr
                       controller: cubit.tabController,
                       children: [
                         ...cubit.tabs
-                            .map((e) => PullDownList<T>(
+                            .map((e) => PullDownList<dynamic>(
                                   renderItem: (data, index) {
                                     return buildItem(data, index);
                                   },
@@ -158,7 +155,7 @@ class _${className}PageState extends State<${className}Page> with SingleTickerPr
         ));
   }
 
-  Widget buildItem(T data, int index) {
+  Widget buildItem(dynamic data, int index) {
     throw UnimplementedError();
   }
 }

@@ -15,17 +15,10 @@ class ${blocName}Cubit extends Cubit<${blocName}State> {
 
   Future<void> onBlocRequest(int page) async {
     try {
-      emit(state.copy(isLoading: true, isError: false));
       // Simulate network request or data fetching
-      final data = await Future.wait([]);
-
-      emit(state.copy(isLoading: false));
-
+      final data = List.filled(5, "2");
       pullDownListController.finishRefresh(PullDownResponse(hasMore: data.length == pageSize, list: data));
     } catch (e, s) {
-      if (!isClosed) {
-        emit(state.copy(isError: true, isLoading: false));
-      }
       pullDownListController.finishRefresh(PullDownResponse(hasError: true, list: []));
       handlerError(e, s);
     }

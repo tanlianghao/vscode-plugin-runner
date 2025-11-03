@@ -3,7 +3,7 @@
   "displayName": "build-runner-tool",
   "description": "",
   "publisher": "tanlh",
-  "version": "0.1.4",
+  "version": "0.1.6",
   "engines": {
     "vscode": "^1.84.0"
   },
